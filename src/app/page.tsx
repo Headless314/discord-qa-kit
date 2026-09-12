@@ -142,11 +142,29 @@ export default function Home() {
         <header className="flex flex-col gap-6 border-b border-slate-200 pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700"><span className="h-2 w-2 rounded-full bg-indigo-500" /> Discord QA Kit</div>
-            <h1 className="max-w-2xl text-4xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">Prepare a Discord test profile without the busywork.</h1>
+            <h1 className="max-w-2xl text-4xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">Your Discord QA profile, ready in one click.</h1>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-500">Keep your QA profile together, copy each field instantly, open an authorized server invite, and check test emails in one place.</p>
           </div>
           <button type="button" onClick={generateProfile} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#5865f2] px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-[#4752c4]"><MdAutorenew size={19} /> New test profile</button>
         </header>
+
+        <section className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-600">01</p>
+            <p className="mt-2 text-sm font-semibold text-slate-900">Generate</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">Create a fresh QA profile and temporary inbox.</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-indigo-600">02</p>
+            <p className="mt-2 text-sm font-semibold text-slate-900">Copy</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500">Use Copy all fields instead of copying each value.</p>
+          </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-amber-700">03</p>
+            <p className="mt-2 text-sm font-semibold text-amber-950">Verify manually</p>
+            <p className="mt-1 text-xs leading-5 text-amber-900/70">Complete Discord CAPTCHA yourself when it appears.</p>
+          </div>
+        </section>
 
         {error && <div role="alert" className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"><MdInfoOutline className="mt-0.5 shrink-0" size={19} /><span>{error}</span></div>}
 
@@ -159,12 +177,12 @@ export default function Home() {
               <IdentityField label="Password" value={profile.password} masked onCopy={() => copyValue("Password", profile.password)} copied={copiedField === "Password"} />
               <div className="sm:col-span-2"><IdentityField label="Email address" value={emailAddress} onCopy={() => copyValue("Email", emailAddress)} copied={copiedField === "Email"} /></div>
             </div>
-            <button type="button" onClick={() => copyValue("All fields", allFields)} className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 text-sm font-semibold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50">{copiedField === "All fields" ? <MdCheck className="text-emerald-600" size={20} /> : <MdContentCopy size={19} />}{copiedField === "All fields" ? "Copied all fields" : "Copy all fields"}</button>
+            <button type="button" onClick={() => copyValue("All fields", allFields)} className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#5865f2] text-sm font-semibold text-white transition hover:bg-[#4752c4]">{copiedField === "All fields" ? <MdCheck className="text-emerald-600" size={20} /> : <MdContentCopy size={19} />}{copiedField === "All fields" ? "Copied all fields" : "Copy all fields"}</button>
           </div>
 
           <div className="flex flex-col gap-6">
             <div className="rounded-[2rem] bg-[#e9eafe] p-5 sm:p-7">
-              <div className="flex items-start justify-between gap-4"><div><p className="text-sm font-semibold text-indigo-950">Open a server invite</p><p className="mt-1 text-sm leading-6 text-indigo-900/70">Launch an authorized Discord invite or QA workspace in a new tab.</p></div><MdGroups className="text-[#5865f2]" size={23} /></div>
+              <div className="flex items-start justify-between gap-4"><div><p className="text-sm font-semibold text-indigo-950">Step 2: Open the authorized invite</p><p className="mt-1 text-sm leading-6 text-indigo-900/70">Launch an authorized Discord invite or QA workspace in a new tab. Discord verification remains manual.</p></div><MdGroups className="text-[#5865f2]" size={23} /></div>
               <div className="mt-5 flex gap-2 rounded-2xl bg-white p-1.5 shadow-sm"><input value={inviteUrl} onChange={event => setInviteUrl(event.target.value)} placeholder="https://discord.gg/your-invite" aria-label="Discord invite URL" className="min-w-0 flex-1 bg-transparent px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400" /><button type="button" onClick={openInvite} aria-label="Open Discord invite" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#5865f2] text-white transition hover:bg-[#4752c4]"><MdArrowForward size={20} /></button></div>
             </div>
 
@@ -176,7 +194,7 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="mt-8 flex flex-col gap-2 border-t border-slate-200 pt-5 text-xs leading-5 text-slate-400 sm:flex-row sm:items-center sm:justify-between"><span>For authorized Discord QA and development testing only.</span><span className="inline-flex items-center gap-1.5"><MdOpenInNew size={15} /> This tool does not create accounts, submit forms, or bypass verification.</span></footer>
+        <footer className="mt-8 flex flex-col gap-2 border-t border-slate-200 pt-5 text-xs leading-5 text-slate-400 sm:flex-row sm:items-center sm:justify-between"><span>For authorized Discord QA and development testing only.</span><span className="inline-flex items-center gap-1.5"><MdOpenInNew size={15} /> CAPTCHA and verification must always be completed manually.</span></footer>
       </div>
     </main>
   )

@@ -268,6 +268,7 @@ export default function Home() {
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-500">A Discord-inspired workspace for switching between authorized test profiles, checking status, and keeping setup details together.</p>
           </div>
           <button type="button" onClick={generateProfile} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#5865f2] px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-[#4752c4]"><MdAutorenew size={19} /> New test profile</button>
+          <a href="/api/auth/dashboard?logout=1" className="text-sm font-semibold text-slate-400 transition hover:text-slate-900">Sign out</a>
         </header>
 
         <section className="mt-6 grid gap-3 sm:grid-cols-3">

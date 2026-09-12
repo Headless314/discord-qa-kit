@@ -63,6 +63,13 @@ type AccountWorkspace = {
   }
 }
 
+
+type DiscordUser = {
+  id: string
+  username: string
+  global_name?: string | null
+}
+
 type FieldProps = { label: string; value: string; onCopy: () => void; copied: boolean; masked?: boolean }
 const IdentityField = ({ label, value, onCopy, copied, masked = false }: FieldProps) => (
   <div className="group flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 transition hover:border-indigo-300 hover:shadow-sm">
@@ -92,6 +99,9 @@ export default function Home() {
   const [workspaceName, setWorkspaceName] = useState("Discord project 1")
   const [isWorkspaceHydrated, setIsWorkspaceHydrated] = useState(false)
 
+  const [discordUser, setDiscordUser] = useState<DiscordUser | null>(null)
+  const [isDiscordLoading, setIsDiscordLoading] = useState(true)
+
   const allFields = useMemo(() => [
     ["Display name", profile.displayName],
     ["Username", profile.username],
@@ -101,6 +111,19 @@ export default function Home() {
 
 
   const activeWorkspace = useMemo(() => workspaces.find(workspace => workspace.id === activeWorkspaceId), [workspaces, activeWorkspaceId])
+
+
+  const loadDiscordStatus = async () => {
+    try {
+      const response = await fetch("/api/auth/discord/status", { cache: "no-store" })
+      const data = await response.json()
+      setDiscordUser(data.connected ? data.user : null)
+    } catch {
+      setDiscordUser(null)
+    } finally {
+      setIsDiscordLoading(false)
+    }
+  }
 
   const createWorkspace = () => {
     const workspace: AccountWorkspace = {
@@ -190,6 +213,8 @@ export default function Home() {
   }
 
 
+  useEffect(() => { void loadDiscordStatus() }, [])
+
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem("discord-qa-workspaces")
@@ -260,6 +285,10 @@ export default function Home() {
           </div>
           {activeWorkspace && <div className="mt-5 rounded-2xl bg-slate-50 p-4 sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-sm font-semibold text-slate-900">{activeWorkspace.name}</p><p className="mt-1 text-xs text-slate-500">{activeWorkspace.email || "No inbox captured"} · Passwords are never saved here.</p></div><button type="button" onClick={() => deleteWorkspace(activeWorkspace.id)} className="inline-flex items-center gap-1 self-start text-xs font-semibold text-slate-400 transition hover:text-red-600"><MdDeleteOutline size={17} /> Delete workspace</button></div>
+            <div className="mt-4 flex flex-col gap-3 rounded-xl border border-indigo-100 bg-indigo-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700">Discord account connection</p><p className="mt-1 text-sm text-indigo-950">{isDiscordLoading ? "Checking connection…" : discordUser ? "Connected as " + (discordUser.global_name || discordUser.username) : "Connect through Discord OAuth2. Your password stays with Discord."}</p>{discordUser && <p className="mt-1 text-xs text-indigo-900/60">Discord ID: {discordUser.id}</p>}</div>
+              {discordUser ? <button type="button" onClick={() => { window.location.href = "/api/auth/discord/logout" }} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100">Disconnect</button> : <button type="button" disabled={isDiscordLoading} onClick={() => { window.location.href = "/api/auth/discord/start" }} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#5865f2] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#4752c4] disabled:opacity-50">Connect Discord</button>}
+            </div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {([["profile", "Profile copied"], ["invite", "Authorized invite opened"], ["inbox", "Verification inbox checked"], ["captcha", "CAPTCHA completed manually"]] as [keyof AccountWorkspace["steps"], string][]).map(item => <button type="button" key={item[0]} onClick={() => toggleWorkspaceStep(activeWorkspace.id, item[0])} className="flex items-center gap-3 rounded-xl bg-white px-3 py-3 text-left text-xs font-medium text-slate-700"><span className={"flex h-5 w-5 items-center justify-center rounded-full border " + (activeWorkspace.steps[item[0]] ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 text-transparent")}><MdCheck size={14} /></span>{item[1]}</button>)}
             </div>

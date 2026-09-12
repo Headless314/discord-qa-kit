@@ -9,6 +9,7 @@ import {
   MdInfoOutline,
   MdMailOutline,
   MdOpenInNew,
+  MdNotificationsActive,
   MdRefresh,
   MdShield,
   MdAutorenew,
@@ -54,6 +55,7 @@ type AccountWorkspace = {
   username: string
   email: string
   inviteUrl: string
+  freeTrial?: boolean
   createdAt: string
   steps: {
     profile: boolean
@@ -133,12 +135,17 @@ export default function Home() {
       username: profile.username,
       email: emailAddress,
       inviteUrl,
+      freeTrial: false,
       createdAt: new Date().toISOString(),
       steps: { profile: false, invite: false, inbox: false, captcha: false },
     }
     setWorkspaces(current => [workspace, ...current])
     setActiveWorkspaceId(workspace.id)
     setWorkspaceName("Discord project " + (workspaces.length + 2))
+  }
+
+  const toggleFreeTrial = (workspaceId: string) => {
+    setWorkspaces(current => current.map(workspace => workspace.id === workspaceId ? { ...workspace, freeTrial: !workspace.freeTrial } : workspace))
   }
 
   const toggleWorkspaceStep = (workspaceId: string, step: keyof AccountWorkspace["steps"]) => {
@@ -296,11 +303,14 @@ export default function Home() {
               <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-indigo-700">Discord account connection</p><p className="mt-1 text-sm text-indigo-950">{isDiscordLoading ? "Checking connection…" : discordUser ? "Connected as " + (discordUser.global_name || discordUser.username) : "Connect through Discord OAuth2. Your password stays with Discord."}</p>{discordUser && <p className="mt-1 text-xs text-indigo-900/60">Discord ID: {discordUser.id}</p>}</div>
               {discordUser ? <button type="button" onClick={() => { window.location.href = "/api/auth/discord/logout" }} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100">Disconnect</button> : <button type="button" disabled={isDiscordLoading} onClick={() => { window.location.href = "/api/auth/discord/start" }} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#5865f2] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#4752c4] disabled:opacity-50">Connect Discord</button>}
             </div>
+            <div className="mt-4 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">Trial notifier</p><p className="mt-1 text-sm text-amber-950">Manually mark this project when Discord shows a free-trial offer.</p></div><button type="button" onClick={() => toggleFreeTrial(activeWorkspace.id)} className={"inline-flex shrink-0 items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs font-semibold transition " + (activeWorkspace.freeTrial ? "bg-amber-600 text-white hover:bg-amber-700" : "border border-amber-300 bg-white text-amber-800 hover:bg-amber-100")}>{activeWorkspace.freeTrial ? "Free trial available" : "Mark free trial available"}</button></div>
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {([["profile", "Profile copied"], ["invite", "Authorized invite opened"], ["inbox", "Verification inbox checked"], ["captcha", "CAPTCHA completed manually"]] as [keyof AccountWorkspace["steps"], string][]).map(item => <button type="button" key={item[0]} onClick={() => toggleWorkspaceStep(activeWorkspace.id, item[0])} className="flex items-center gap-3 rounded-xl bg-white px-3 py-3 text-left text-xs font-medium text-slate-700"><span className={"flex h-5 w-5 items-center justify-center rounded-full border " + (activeWorkspace.steps[item[0]] ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 text-transparent")}><MdCheck size={14} /></span>{item[1]}</button>)}
             </div>
           </div>}
         </section>
+
+        {workspaces.some(workspace => workspace.freeTrial) && <div role="status" className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-amber-950 shadow-sm"><MdNotificationsActive className="mt-0.5 shrink-0 text-amber-600" size={22} /><div><p className="text-sm font-semibold">Free trial available</p><p className="mt-1 text-xs leading-5 text-amber-900/70">Marked in {workspaces.filter(workspace => workspace.freeTrial).map(workspace => workspace.name).join(", ")}.</p></div></div>}
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">

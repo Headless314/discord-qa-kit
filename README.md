@@ -1,6 +1,6 @@
-# Discord QA Kit
+# Discord Account Studio
 
-A small Next.js app for authorized Discord QA and server onboarding. It prepares a test profile, checks a temporary inbox, and provides browser-local account workspaces.
+A Discord-inspired dashboard for authorized QA and server onboarding. It prepares test profiles, checks a temporary inbox, connects an authorized Discord identity through OAuth2, and keeps browser-local account workspaces.
 
 ## Features
 
@@ -8,7 +8,9 @@ A small Next.js app for authorized Discord QA and server onboarding. It prepares
 - Copy individual fields or the full profile bundle
 - Open an authorized Discord server invite
 - Create Project 1-style Account Workspaces after you manually finish an account
-- Track profile, invite, inbox, and manual CAPTCHA checkpoints
+- Switch between configured workspaces
+- Track profile, invite, inbox, manual CAPTCHA, and free-trial checkpoints
+- Send a Discord webhook notification when a workspace is marked as having a free trial
 - Connect the currently authorized Discord account through official Discord OAuth2
 
 Workspace data stays in the browser's local storage and passwords are never saved in a workspace. OAuth stores only a short-lived identity snapshot in an HttpOnly cookie; the app never asks for or stores a Discord password.
@@ -21,7 +23,14 @@ Workspace data stays in the browser's local storage and passwords are never save
 4. Set `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `DISCORD_REDIRECT_URI`.
 5. Run the app and use **Connect Discord** inside a workspace.
 
-For production, use your deployed HTTPS callback URL and keep the client secret in your deployment's secret manager.
+## Discord webhook setup
+
+1. Create an incoming webhook in the Discord channel where alerts should appear.
+2. Set `DISCORD_ALERT_WEBHOOK_URL` in `.env.local` or your deployment secret manager.
+3. Mark **Free trial available** in a workspace.
+4. The server posts the workspace name to the configured channel.
+
+Keep the webhook URL server-side. Never put it in client-side code or commit the real value to GitHub.
 
 ## Safety boundary
 

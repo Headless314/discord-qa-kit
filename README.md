@@ -15,22 +15,25 @@ A Discord-inspired dashboard for authorized QA and server onboarding. It prepare
 
 Workspace data stays in the browser's local storage and passwords are never saved in a workspace. OAuth stores only a short-lived identity snapshot in an HttpOnly cookie; the app never asks for or stores a Discord password.
 
-## Discord OAuth setup
+## Railway deployment
 
-1. Create an application in the Discord Developer Portal.
-2. Add this redirect URL: `http://localhost:3000/api/auth/discord/callback` for local development.
-3. Copy `.env.example` to `.env.local`.
-4. Set `DISCORD_CLIENT_ID`, `DISCORD_CLIENT_SECRET`, and `DISCORD_REDIRECT_URI`.
-5. Run the app and use **Connect Discord** inside a workspace.
+This repository includes `railway.json`. The app binds to `0.0.0.0` and uses Railway's `PORT` variable, defaulting to port `8080` when it is not set.
+
+Set these variables in the Railway service: 
+
+- `PORT=8080` (Railway may override this with its assigned port)
+- `DISCORD_CLIENT_ID`
+- `DISCORD_CLIENT_SECRET`
+- `DISCORD_REDIRECT_URI=https://discord-controller-h.up.railway.app/api/auth/discord/callback`
+- `DISCORD_ALERT_WEBHOOK_URL`
+
+Add `https://discord-controller-h.up.railway.app/api/auth/discord/callback` as an OAuth redirect URL in the Discord Developer Portal. Configure the `discord-controller-h.up.railway.app` domain on the Railway service.
+
+Keep all secrets in Railway Variables. Never commit their values to GitHub.
 
 ## Discord webhook setup
 
-1. Create an incoming webhook in the Discord channel where alerts should appear.
-2. Set `DISCORD_ALERT_WEBHOOK_URL` in `.env.local` or your deployment secret manager.
-3. Mark **Free trial available** in a workspace.
-4. The server posts the workspace name to the configured channel.
-
-Keep the webhook URL server-side. Never put it in client-side code or commit the real value to GitHub.
+Create an incoming webhook in the Discord channel where alerts should appear, then set `DISCORD_ALERT_WEBHOOK_URL`. Mark **Free trial available** in a workspace to send an alert.
 
 ## Safety boundary
 

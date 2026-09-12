@@ -241,9 +241,9 @@ export default function Home() {
       <div className="mx-auto max-w-6xl px-5 py-6 sm:px-8 sm:py-10">
         <header className="flex flex-col gap-6 border-b border-slate-200 pb-8 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700"><span className="h-2 w-2 rounded-full bg-indigo-500" /> Discord QA Kit</div>
-            <h1 className="max-w-2xl text-4xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">Your Discord QA profile, ready in one click.</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-500">Keep your QA profile together, copy each field instantly, open an authorized server invite, and check test emails in one place.</p>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700"><span className="h-2 w-2 rounded-full bg-indigo-500" /> Discord Account Studio</div>
+            <h1 className="max-w-2xl text-4xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">Configure your authorized Discord account.</h1>
+            <p className="mt-4 max-w-2xl text-base leading-7 text-slate-500">A Discord-inspired workspace for switching between authorized test profiles, checking status, and keeping setup details together.</p>
           </div>
           <button type="button" onClick={generateProfile} className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#5865f2] px-5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:bg-[#4752c4]"><MdAutorenew size={19} /> New test profile</button>
         </header>
@@ -282,6 +282,13 @@ export default function Home() {
           <div className="mt-5 grid gap-3 md:grid-cols-3">
             {workspaces.length === 0 && <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-5 text-sm text-slate-400 md:col-span-3">No workspaces yet. Finish your authorized Discord test account, then click Account created.</div>}
             {workspaces.map(workspace => <button type="button" key={workspace.id} onClick={() => setActiveWorkspaceId(workspace.id)} className={"rounded-2xl border p-4 text-left transition " + (workspace.id === activeWorkspaceId ? "border-indigo-400 bg-indigo-50" : "border-slate-200 bg-slate-50 hover:border-indigo-200")}><p className="truncate text-sm font-semibold text-slate-900">{workspace.name}</p><p className="mt-1 truncate text-xs text-slate-500">{workspace.displayName} · {workspace.username}</p><p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">{Object.values(workspace.steps).filter(Boolean).length}/4 complete</p></button>)}
+          </div>
+          <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-[#2f3136] p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/60">Active account</p><p className="mt-1 text-sm font-medium text-white">Choose the workspace you want to configure.</p></div>
+            <select value={activeWorkspaceId} onChange={event => setActiveWorkspaceId(event.target.value)} aria-label="Active Discord account workspace" className="rounded-xl border-0 bg-white px-3 py-2 text-sm font-semibold text-slate-800 outline-none ring-2 ring-transparent focus:ring-indigo-300 sm:min-w-[230px]">
+              <option value="">Select a workspace</option>
+              {workspaces.map(workspace => <option key={workspace.id} value={workspace.id}>{workspace.name} · {workspace.username}</option>)}
+            </select>
           </div>
           {activeWorkspace && <div className="mt-5 rounded-2xl bg-slate-50 p-4 sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-sm font-semibold text-slate-900">{activeWorkspace.name}</p><p className="mt-1 text-xs text-slate-500">{activeWorkspace.email || "No inbox captured"} · Passwords are never saved here.</p></div><button type="button" onClick={() => deleteWorkspace(activeWorkspace.id)} className="inline-flex items-center gap-1 self-start text-xs font-semibold text-slate-400 transition hover:text-red-600"><MdDeleteOutline size={17} /> Delete workspace</button></div>

@@ -13,6 +13,8 @@ import {
   MdShield,
   MdAutorenew,
   MdGroups,
+  MdDashboard,
+  MdDeleteOutline,
 } from "react-icons/md"
 
 import { EmailMessage } from "@/lib/types"
@@ -44,6 +46,23 @@ const makeProfile = () => {
 }
 const formatMessageDate = (date: number) => date ? new Date(date).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : ""
 
+
+type AccountWorkspace = {
+  id: string
+  name: string
+  displayName: string
+  username: string
+  email: string
+  inviteUrl: string
+  createdAt: string
+  steps: {
+    profile: boolean
+    invite: boolean
+    inbox: boolean
+    captcha: boolean
+  }
+}
+
 type FieldProps = { label: string; value: string; onCopy: () => void; copied: boolean; masked?: boolean }
 const IdentityField = ({ label, value, onCopy, copied, masked = false }: FieldProps) => (
   <div className="group flex items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-4 py-3 transition hover:border-indigo-300 hover:shadow-sm">
@@ -68,12 +87,48 @@ export default function Home() {
   const [isMessagesLoading, setIsMessagesLoading] = useState(false)
   const [error, setError] = useState("")
 
+  const [workspaces, setWorkspaces] = useState<AccountWorkspace[]>([])
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState("")
+  const [workspaceName, setWorkspaceName] = useState("Discord project 1")
+  const [isWorkspaceHydrated, setIsWorkspaceHydrated] = useState(false)
+
   const allFields = useMemo(() => [
     ["Display name", profile.displayName],
     ["Username", profile.username],
     ["Password", profile.password],
     ["Email", emailAddress],
   ].map(item => item[0] + ": " + item[1]).join("\\n"), [profile, emailAddress])
+
+
+  const activeWorkspace = useMemo(() => workspaces.find(workspace => workspace.id === activeWorkspaceId), [workspaces, activeWorkspaceId])
+
+  const createWorkspace = () => {
+    const workspace: AccountWorkspace = {
+      id: Date.now().toString(),
+      name: workspaceName.trim() || "Discord project " + (workspaces.length + 1),
+      displayName: profile.displayName,
+      username: profile.username,
+      email: emailAddress,
+      inviteUrl,
+      createdAt: new Date().toISOString(),
+      steps: { profile: false, invite: false, inbox: false, captcha: false },
+    }
+    setWorkspaces(current => [workspace, ...current])
+    setActiveWorkspaceId(workspace.id)
+    setWorkspaceName("Discord project " + (workspaces.length + 2))
+  }
+
+  const toggleWorkspaceStep = (workspaceId: string, step: keyof AccountWorkspace["steps"]) => {
+    setWorkspaces(current => current.map(workspace => workspace.id === workspaceId
+      ? { ...workspace, steps: { ...workspace.steps, [step]: !workspace.steps[step] } }
+      : workspace
+    ))
+  }
+
+  const deleteWorkspace = (workspaceId: string) => {
+    setWorkspaces(current => current.filter(workspace => workspace.id !== workspaceId))
+    if (activeWorkspaceId === workspaceId) setActiveWorkspaceId("")
+  }
 
   const copyValue = async (label: string, value: string) => {
     if (!value) return
@@ -134,6 +189,26 @@ export default function Home() {
     }
   }
 
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("discord-qa-workspaces")
+      if (saved) {
+        const parsed = JSON.parse(saved) as AccountWorkspace[]
+        setWorkspaces(parsed)
+        if (parsed[0]) setActiveWorkspaceId(parsed[0].id)
+      }
+    } catch {
+      setError("Saved workspaces could not be loaded in this browser.")
+    } finally {
+      setIsWorkspaceHydrated(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isWorkspaceHydrated) window.localStorage.setItem("discord-qa-workspaces", JSON.stringify(workspaces))
+  }, [workspaces, isWorkspaceHydrated])
+
   useEffect(() => { void generateInbox() }, [])
 
   return (
@@ -167,6 +242,29 @@ export default function Home() {
         </section>
 
         {error && <div role="alert" className="mt-6 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"><MdInfoOutline className="mt-0.5 shrink-0" size={19} /><span>{error}</span></div>}
+
+        <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-950"><MdDashboard className="text-[#5865f2]" size={20} /> Account workspaces</div>
+              <p className="mt-1 text-sm text-slate-500">Create a Project 1-style dashboard after you manually finish an authorized test account.</p>
+            </div>
+            <div className="flex w-full gap-2 sm:max-w-md">
+              <input value={workspaceName} onChange={event => setWorkspaceName(event.target.value)} aria-label="Workspace name" placeholder="Discord project 1" className="min-w-0 flex-1 rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-indigo-400" />
+              <button type="button" onClick={createWorkspace} className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"><MdCheck size={17} /> Account created</button>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            {workspaces.length === 0 && <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-5 text-sm text-slate-400 md:col-span-3">No workspaces yet. Finish your authorized Discord test account, then click Account created.</div>}
+            {workspaces.map(workspace => <button type="button" key={workspace.id} onClick={() => setActiveWorkspaceId(workspace.id)} className={"rounded-2xl border p-4 text-left transition " + (workspace.id === activeWorkspaceId ? "border-indigo-400 bg-indigo-50" : "border-slate-200 bg-slate-50 hover:border-indigo-200")}><p className="truncate text-sm font-semibold text-slate-900">{workspace.name}</p><p className="mt-1 truncate text-xs text-slate-500">{workspace.displayName} · {workspace.username}</p><p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-indigo-600">{Object.values(workspace.steps).filter(Boolean).length}/4 complete</p></button>)}
+          </div>
+          {activeWorkspace && <div className="mt-5 rounded-2xl bg-slate-50 p-4 sm:p-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-sm font-semibold text-slate-900">{activeWorkspace.name}</p><p className="mt-1 text-xs text-slate-500">{activeWorkspace.email || "No inbox captured"} · Passwords are never saved here.</p></div><button type="button" onClick={() => deleteWorkspace(activeWorkspace.id)} className="inline-flex items-center gap-1 self-start text-xs font-semibold text-slate-400 transition hover:text-red-600"><MdDeleteOutline size={17} /> Delete workspace</button></div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              {([["profile", "Profile copied"], ["invite", "Authorized invite opened"], ["inbox", "Verification inbox checked"], ["captcha", "CAPTCHA completed manually"]] as [keyof AccountWorkspace["steps"], string][]).map(item => <button type="button" key={item[0]} onClick={() => toggleWorkspaceStep(activeWorkspace.id, item[0])} className="flex items-center gap-3 rounded-xl bg-white px-3 py-3 text-left text-xs font-medium text-slate-700"><span className={"flex h-5 w-5 items-center justify-center rounded-full border " + (activeWorkspace.steps[item[0]] ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 text-transparent")}><MdCheck size={14} /></span>{item[1]}</button>)}
+            </div>
+          </div>}
+        </section>
 
         <section className="mt-8 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm sm:p-7">

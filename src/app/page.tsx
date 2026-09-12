@@ -144,8 +144,23 @@ export default function Home() {
     setWorkspaceName("Discord project " + (workspaces.length + 2))
   }
 
-  const toggleFreeTrial = (workspaceId: string) => {
-    setWorkspaces(current => current.map(workspace => workspace.id === workspaceId ? { ...workspace, freeTrial: !workspace.freeTrial } : workspace))
+  const toggleFreeTrial = async (workspaceId: string) => {
+    const workspace = workspaces.find(item => item.id === workspaceId)
+    const nextValue = !workspace?.freeTrial
+    setWorkspaces(current => current.map(item => item.id === workspaceId ? { ...item, freeTrial: nextValue } : item))
+
+    if (nextValue && workspace) {
+      try {
+        const response = await fetch("/api/notify/free-trial", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ workspaceName: workspace.name }),
+        })
+        if (!response.ok) throw new Error("Webhook failed")
+      } catch {
+        setError("The workspace was marked, but the Discord webhook could not send the notification.")
+      }
+    }
   }
 
   const toggleWorkspaceStep = (workspaceId: string, step: keyof AccountWorkspace["steps"]) => {
